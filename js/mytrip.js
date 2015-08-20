@@ -119,6 +119,7 @@ $(window).on("resize", function () {
 });
 
 var polylines = new Cesium.PolylineCollection();
+var arcs = {};
 viewer.scene.primitives.add(polylines);
 
 var addLine = function(data1, data2) {
@@ -155,7 +156,7 @@ var addLine = function(data1, data2) {
 
     tangents.push(crspline.lastTangent);
 
-    hspline = Cesium.HermiteSpline.createC1({
+    var hspline = Cesium.HermiteSpline.createC1({
         points: points,
         tangents: tangents,
         times: times
@@ -172,6 +173,42 @@ var addLine = function(data1, data2) {
         //material: material,
         width: 6.0
     });
+
+    return polyline;
+};
+
+var addLine2 = function(data1, data2) {
+    var ellipsoid = viewer.scene.globe.ellipsoid;
+    var coords1 = data1.coords;
+    var lon1 = parseFloat(coords1.lon);
+    var lat1 = parseFloat(coords1.lat);
+    var coords2 = data2.coords;
+    var lon2 = parseFloat(coords2.lon);
+    var lat2 = parseFloat(coords2.lat);
+    var p0 = Cesium.Cartographic.fromDegrees(lon1, lat1);
+    var p1 = Cesium.Cartographic.fromDegrees(lon2, lat2);
+    var geo = new Cesium.EllipsoidGeodesic(p0, p1);
+    console.log(geo.surfaceDistance);
+
+    var positions = [];
+    var segments = 32;
+    for (var i = 0; i <= segments; i++) {
+        var fraction = i * 1.0 / segments;
+        var point = geo.interpolateUsingFraction(fraction);
+        //var offset = (1 - Math.abs(fraction * 2 - 1));
+        var offset = 4 * fraction * (1 - fraction);
+        point.height += offset * geo.surfaceDistance / 10;
+        console.log(offset);
+        positions.push(ellipsoid.cartographicToCartesian(point));
+    }
+
+    var polyline = polylines.add({
+        positions: positions,
+        //material: material,
+        width: 6.0
+    });
+
+    return polyline;
 };
 
 //var coordsUrl = "https://script.google.com/macros/s/AKfycbyJy1PZ5SVtWSD9bTHJNOsFwS6lvaZjo8NdYzevdHlwuqhJgi1s/exec";
@@ -222,17 +259,28 @@ $.getJSON(coordsUrl, function(data) {
             var billboard = billboards.add({
                 show: true,
                 id: 'pushpin-green',
-                scale: 0.5,
+                scale: 0.3,
                 position : Cesium.Cartesian3.fromDegrees(lon, lat),
-                image : 'pushpin-green.svg',
+                image : 'icons/pushpin-green.svg',
                 verticalOrigin: Cesium.VerticalOrigin.BOTTOM
             });
             destinations[placeObj.place] = billboard;
         }
 
-        displayDestination(placeObj);
+        var lastPlaceObj = data[index - 1];
+        if (lastPlaceObj.place == placeObj.place) {
+            console.log("Same place as before: " + placeObj.place);
+        } else {
+            var arcStr = lastPlaceObj.place + " - " + placeObj.place;
+            if (arcStr in arcs) {
+                console.log("An arc already exists for: " + arcStr);
+            } else {
+                var arc = addLine2(lastPlaceObj, placeObj);
+                arcs[arcStr] = arc;
+            }
+        }
 
-        addLine(data[index - 1], data[index]);
+        displayDestination(placeObj);
 
         viewer.camera.flyTo({
             destination: Cesium.Cartesian3.fromDegrees(lon, lat, 50000.0),
