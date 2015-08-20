@@ -1,6 +1,6 @@
 var options = {
     homeButton: false,
-    sceneModePicker: false,
+    sceneModePicker: true,
     selectionIndicator: false,
     infoBox: false,
     creditContainer: "creditsContainer",
@@ -12,6 +12,28 @@ viewer.baseLayerPicker.viewModel.selectedImagery = viewer.baseLayerPicker.viewMo
 
 var billboards = viewer.scene.primitives.add(new Cesium.BillboardCollection());
 var destinations = {};
+
+var pickedPlace = null;
+
+var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+handler.setInputAction(function(movement) {
+    var pickedObject = viewer.scene.pick(movement.position);
+    if (Cesium.defined(pickedObject) && pickedObject.primitive instanceof Cesium.Billboard) {
+        console.log("A billboard was picked: " + pickedObject.id);
+        var billboard = pickedObject.primitive;
+        if (pickedPlace != null) {
+            pickedPlace.image = "icons/marker-blue.png";
+        }
+        billboard.image = "icons/marker-green.png";
+        pickedPlace = billboard;
+    } else {
+        console.log("No object was picked");
+        if (pickedPlace != null) {
+            pickedPlace.image = "icons/marker-blue.png";
+            pickedPlace = null;
+        }
+    }
+}, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
 var duration = 2.0;
 var started = false;
@@ -270,11 +292,12 @@ $.getJSON(coordsUrl, function(data) {
         } else {
             var billboard = billboards.add({
                 show: true,
-                id: 'marker',
+                id: placeObj.place,
                 scale: 0.5,
                 position : Cesium.Cartesian3.fromDegrees(lon, lat),
                 image : 'icons/marker-green.png',
-                verticalOrigin: Cesium.VerticalOrigin.BOTTOM
+                verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
+                scaleByDistance: new Cesium.NearFarScalar(1.5e2, 1.5, 8.0e6, 0.0)
             });
             destinations[placeObj.place] = billboard;
             var lastBillboard = destinations[lastPlaceObj.place];
