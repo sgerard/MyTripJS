@@ -3,3 +3,4 @@ images/*.jpg
 sounds/music.mp3
 *.coffee
 thumbs/*.py
+data/*.json
