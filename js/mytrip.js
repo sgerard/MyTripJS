@@ -13,7 +13,7 @@ viewer.baseLayerPicker.viewModel.selectedImagery = viewer.baseLayerPicker.viewMo
 var billboards = viewer.scene.primitives.add(new Cesium.BillboardCollection());
 var destinations = {};
 
-var duration = 3.0;
+var duration = 2.0;
 var started = false;
 
 $("#carousel").slick({
@@ -122,6 +122,16 @@ var polylines = new Cesium.PolylineCollection();
 var arcs = {};
 viewer.scene.primitives.add(polylines);
 
+var material = new Cesium.Material({
+    fabric: {
+        type: "PolylineGlow",
+        uniforms: {
+            color: Cesium.Color.CORNFLOWERBLUE,
+            glowPower: 0.1
+        }
+    }
+});
+
 var addLine = function(data1, data2) {
     var ellipsoid = viewer.scene.globe.ellipsoid;
     var coords1 = data1.coords;
@@ -170,7 +180,7 @@ var addLine = function(data1, data2) {
 
     var polyline = polylines.add({
         positions: positions,
-        //material: material,
+        material: material,
         width: 6.0
     });
 
@@ -204,8 +214,8 @@ var addLine2 = function(data1, data2) {
 
     var polyline = polylines.add({
         positions: positions,
-        //material: material,
-        width: 6.0
+        material: material,
+        width: 30.0
     });
 
     return polyline;
@@ -258,10 +268,10 @@ $.getJSON(coordsUrl, function(data) {
         } else {
             var billboard = billboards.add({
                 show: true,
-                id: 'pushpin-green',
-                scale: 0.3,
+                id: 'marker',
+                scale: 0.5,
                 position : Cesium.Cartesian3.fromDegrees(lon, lat),
-                image : 'icons/pushpin-green.svg',
+                image : 'icons/marker-green.png',
                 verticalOrigin: Cesium.VerticalOrigin.BOTTOM
             });
             destinations[placeObj.place] = billboard;
@@ -284,8 +294,9 @@ $.getJSON(coordsUrl, function(data) {
 
         viewer.camera.flyTo({
             destination: Cesium.Cartesian3.fromDegrees(lon, lat, 50000.0),
-            duration: 3.0,
-            complete: onMoveCompleted
+            duration: duration,
+            complete: onMoveCompleted,
+            maximumHeight: 100000
         });
     };
 
