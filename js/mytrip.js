@@ -263,6 +263,8 @@ $.getJSON(coordsUrl, function(data) {
         var lon = parseFloat(placeObj.coords.lon);
         var lat = parseFloat(placeObj.coords.lat);
 
+        var lastPlaceObj = data[index - 1];
+
         if (placeObj.place in destinations) {
             console.log("A billboard already exists for: " + placeObj.place);
         } else {
@@ -275,9 +277,11 @@ $.getJSON(coordsUrl, function(data) {
                 verticalOrigin: Cesium.VerticalOrigin.BOTTOM
             });
             destinations[placeObj.place] = billboard;
+            var lastBillboard = destinations[lastPlaceObj.place];
+            if (lastBillboard)
+                lastBillboard.image = "icons/marker-blue.png";
         }
 
-        var lastPlaceObj = data[index - 1];
         if (lastPlaceObj.place == placeObj.place) {
             console.log("Same place as before: " + placeObj.place);
         } else {
