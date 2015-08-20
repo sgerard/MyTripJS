@@ -1,7 +1,7 @@
 MyTrip JS
 =========
 
-MyTrip JS helps you show your vacation, road trip, round-the-world journey to your friends, famlily and significant others.
+MyTrip JS helps you show your vacation, road trip, round-the-world journey to your friends, family and significant others.
 
 Features
 --------
@@ -14,7 +14,7 @@ Features
 3rd party
 ---------
 
-MyTrip JS uses the following Javascript libraries:
+MyTrip JS uses the following JavaScript libraries:
 
 * [Cesium JS] (http://cesiumjs.org)
 * [jQuery] (https://jquery.com)
