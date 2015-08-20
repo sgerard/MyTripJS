@@ -1,0 +1,1 @@
+Add images' thumbnails referenced in "data/thumbs.json" in this directory.

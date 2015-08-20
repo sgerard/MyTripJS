@@ -1,0 +1,5 @@
+thumbs/*.jpg
+images/*.jpg
+sounds/music.mp3
+*.coffee
+thumbs/*.py

@@ -1,0 +1,1 @@
+Add full images referenced in "data/thumbs.json" in this directory.
