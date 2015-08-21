@@ -22,14 +22,14 @@ handler.setInputAction(function(movement) {
         console.log("A billboard was picked: " + pickedObject.id);
         var billboard = pickedObject.primitive;
         if (pickedPlace != null) {
-            pickedPlace.image = "icons/marker-blue.png";
+            pickedPlace.image = "icons/marker-green.png";
         }
-        billboard.image = "icons/marker-green.png";
+        billboard.image = "icons/marker-blue.png";
         pickedPlace = billboard;
     } else {
         console.log("No object was picked");
         if (pickedPlace != null) {
-            pickedPlace.image = "icons/marker-blue.png";
+            pickedPlace.image = "icons/marker-green.png";
             pickedPlace = null;
         }
     }
@@ -82,27 +82,29 @@ var clearCarousel = function() {
     }
 };
 
-var fillCarousel = function(day) {
+var fillCarousel = function(placeObj) {
     clearCarousel();
-    var dayStr = day.toISOString().slice(0, 10);
-    if (dayStr in thumbs) {
-        var dayThumbs = thumbs[dayStr];
-        console.log(dayThumbs);
-        var numSlides = dayThumbs.length;
-        for (var i = numSlides - 1; i >= 0; i--) {
-            var imageUrl = dayThumbs[i];
-            $('#carousel').slick('slickAdd','<div><img class="thumb" src="thumbs/' + imageUrl + '"></div>');
-        };
-        //$('#carousel').slick('slickPlay');
+    if (placeObj.place in images) {
+        var placeImages = images[placeObj.place];
+        if (placeObj.day in placeImages) {
+            var dayImages = placeImages[placeObj.day];
+            console.log(dayImages);
+            var numSlides = dayImages.length;
+            for (var i = numSlides - 1; i >= 0; i--) {
+                var imageUrl = dayImages[i];
+                $('#carousel').slick('slickAdd','<div><img class="thumb" src="thumbs/' + imageUrl + '"></div>', true);
+            };
+            //$('#carousel').slick('slickPlay');
         }
+    }
 };
 
-var thumbs = null;
+var images = null;
 
-var thumbsUrl = "data/thumbs.json";
-$.getJSON(thumbsUrl, function(data) {
+var imagesUrl = "data/images.json";
+$.getJSON(imagesUrl, function(data) {
     console.log(data);
-    thumbs = data;
+    images = data;
 });
 
 var countryCodes = null;
@@ -277,7 +279,7 @@ $.getJSON(coordsUrl, function(data) {
         var place = '<span>' + city + '</span><span class="country">(<span class="flag-icon flag-icon-' + countryCodes[country] + '"></span><span>' + country + '</span>)</span>';
         $("#commands .panel .panel-body #place").html(place);
         $("#commands .panel .panel-body #day").text(day.toLocaleDateString());
-        fillCarousel(day);
+        fillCarousel(placeObj);
     };
 
     var gotoDestination = function(index) {
@@ -295,14 +297,14 @@ $.getJSON(coordsUrl, function(data) {
                 id: placeObj.place,
                 scale: 0.5,
                 position : Cesium.Cartesian3.fromDegrees(lon, lat),
-                image : 'icons/marker-green.png',
+                image : 'icons/marker-blue.png',
                 verticalOrigin: Cesium.VerticalOrigin.BOTTOM,
                 scaleByDistance: new Cesium.NearFarScalar(1.5e2, 1.5, 8.0e6, 0.0)
             });
             destinations[placeObj.place] = billboard;
             var lastBillboard = destinations[lastPlaceObj.place];
             if (lastBillboard)
-                lastBillboard.image = "icons/marker-blue.png";
+                lastBillboard.image = "icons/marker-green.png";
         }
 
         if (lastPlaceObj.place == placeObj.place) {
@@ -383,6 +385,10 @@ $.getJSON(coordsUrl, function(data) {
         $(document).on("click", "img.thumb", function() {
             log("Show image");
             $("#imgPopup").modal();
+        });
+
+        $(document).on("mouseover", "img.thumb", function() {
+            log("Hover image: " + $(".slick-current img.thumb").attr("src"));
         });
 
         // display first place

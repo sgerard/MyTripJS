@@ -1,7 +1,7 @@
 This directory should contain 3 JSON files:
 
 * coords.json
-* thumbs.json
+* images.json
 * countryCodes.json
 
 coords.json
@@ -46,27 +46,36 @@ This file contains all the checkpoints of your trip: where you've been to and wh
 ]
 ```
 
-thumbs.json
+images.json
 -----------
 
-This file contains the list of the pictures you want to display. For each day you have pictures, you should provide the matching list of file names. It should look like this:
+This file contains the list of the pictures you want to display. For each place and day you have pictures, you should provide the matching list of file names. It should look like this:
 
 ```JSON
 {
-  "2015-05-10": [
-    "IMG_8174.jpg"
-  ],
-  "2015-05-11": [
-    "IMG_0393.jpg"
-  ],
-  "2015-05-14": [
-    "IMG_0623.jpg"
-  ],
-  "2015-05-20": [
-    "IMG_9385.jpg",
-    "IMG_9410.jpg",
-    "IMG_9418.jpg"
-  ]
+  "Sydney, Australie": {
+    "2015-03-19": [
+      "IMG_0726.jpg"
+    ],
+    "2015-03-20": [
+      "IMG_0734.jpg",
+      "IMG_0754.jpg",
+      "IMG_0785.jpg",
+      "IMG_0789.jpg"
+    ]
+  },
+  "Auckland, Nouvelle-Zélande": {
+    "2015-03-24": [
+      "IMG_0838.jpg",
+      "IMG_0875.jpg"
+    ],
+    "2015-03-25": [
+      "IMG_7884.jpg"
+    ],
+    "2015-03-26": [
+      "IMG_7895.jpg"
+    ]
+  }
 }
 ```
 
