@@ -15,26 +15,6 @@ var destinations = {};
 
 var pickedPlace = null;
 
-var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
-handler.setInputAction(function(movement) {
-    var pickedObject = viewer.scene.pick(movement.position);
-    if (Cesium.defined(pickedObject) && pickedObject.primitive instanceof Cesium.Billboard) {
-        console.log("A billboard was picked: " + pickedObject.id);
-        var billboard = pickedObject.primitive;
-        if (pickedPlace != null) {
-            pickedPlace.image = "icons/marker-green.png";
-        }
-        billboard.image = "icons/marker-blue.png";
-        pickedPlace = billboard;
-    } else {
-        console.log("No object was picked");
-        if (pickedPlace != null) {
-            pickedPlace.image = "icons/marker-green.png";
-            pickedPlace = null;
-        }
-    }
-}, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-
 var duration = 2.0;
 var started = false;
 
@@ -82,21 +62,13 @@ var clearCarousel = function() {
     }
 };
 
-var fillCarousel = function(placeObj) {
+var fillCarousel = function(selectedImages) {
     clearCarousel();
-    if (placeObj.place in images) {
-        var placeImages = images[placeObj.place];
-        if (placeObj.day in placeImages) {
-            var dayImages = placeImages[placeObj.day];
-            console.log(dayImages);
-            var numSlides = dayImages.length;
-            for (var i = numSlides - 1; i >= 0; i--) {
-                var imageUrl = dayImages[i];
-                $('#carousel').slick('slickAdd','<div><img class="thumb" src="thumbs/' + imageUrl + '"></div>', true);
-            };
-            //$('#carousel').slick('slickPlay');
-        }
-    }
+    for (var i = selectedImages.length - 1; i >= 0; i--) {
+        var imageUrl = selectedImages[i];
+        $('#carousel').slick('slickAdd','<div><img class="thumb" src="thumbs/' + imageUrl + '"></div>', true);
+    };
+    //$('#carousel').slick('slickPlay');
 };
 
 var images = null;
@@ -262,7 +234,7 @@ $.getJSON(coordsUrl, function(data) {
             if (previousPlace.coords.lon == currentPlace.coords.lon &&
                 previousPlace.coords.lat == currentPlace.coords.lat) {
                 console.log("Same place");
-                displayDestination(currentPlace);
+                displayDestination(currentPlace.place, currentPlace.day);
                 setTimeout(onMoveCompleted, duration * 1000);
             } else {
                 console.log("Different place");
@@ -271,15 +243,45 @@ $.getJSON(coordsUrl, function(data) {
         }
     };
 
-    var displayDestination = function(placeObj) {
-        var day = new Date(placeObj.day);
-        var countryParts = placeObj.place.split(", ");
+    var displayDestination = function(place, day) {
+        var countryParts = place.split(", ");
         var city = countryParts[0];
         var country = countryParts[1];
-        var place = '<span>' + city + '</span><span class="country">(<span class="flag-icon flag-icon-' + countryCodes[country] + '"></span><span>' + country + '</span>)</span>';
-        $("#commands .panel .panel-body #place").html(place);
-        $("#commands .panel .panel-body #day").text(day.toLocaleDateString());
-        fillCarousel(placeObj);
+        var placeHtml = '<button type="button" class="btn btn-sm btn-info btn-place" '
+            + 'data-place="' + place + '">' + city + ' </span><span class="country">( <span class="flag-icon flag-icon-' + countryCodes[country] + '"></span><span> ' + country + '</span>)</button>';
+        $("#commands .panel .panel-body #place").html(placeHtml);
+
+        var selectedImages = [];
+
+        if (day != null) {
+            var dayDate = new Date(day);
+            var daysHtml = "<button type='button' class='btn btn-info btn-sm btn-day' "
+                    + "data-day='" + day + "' "
+                    + "data-place='" + place + "' "
+                    + ">" + dayDate.toLocaleDateString() + "</button> ";
+            $("#commands .panel .panel-body #day").html(daysHtml);
+
+            if (place in images) {
+                var placeImages = images[place];
+                if (day in placeImages) {
+                    selectedImages = placeImages[day];
+                }
+            }
+        } else {
+            var daysHtml = "";
+            for (day in images[place]) {
+                var dayDate = new Date(day);
+                daysHtml += "<button type='button' class='btn btn-info btn-sm btn-day' "
+                    + "data-day='" + day + "' "
+                    + "data-place='" + place + "' "
+                    + ">" + dayDate.toLocaleDateString() + "</button> ";
+                console.log(daysHtml);
+                selectedImages = selectedImages.concat(images[place][day]);
+            }
+            $("#commands .panel .panel-body #day").html(daysHtml);
+        }
+
+        fillCarousel(selectedImages);
     };
 
     var gotoDestination = function(index) {
@@ -319,7 +321,7 @@ $.getJSON(coordsUrl, function(data) {
             }
         }
 
-        displayDestination(placeObj);
+        displayDestination(placeObj.place, placeObj.day);
 
         viewer.camera.flyTo({
             destination: Cesium.Cartesian3.fromDegrees(lon, lat, 50000.0),
@@ -391,6 +393,38 @@ $.getJSON(coordsUrl, function(data) {
             log("Hover image: " + $(".slick-current img.thumb").attr("src"));
         });
 
+        $(document).on("click", ".btn-day", function() {
+            var day = $(this).data("day");
+            var place = $(this).data("place");
+            displayDestination(place, day);
+        });
+
+        $(document).on("click", ".btn-place", function() {
+            var place = $(this).data("place");
+            displayDestination(place, null);
+        });
+
+        var handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        handler.setInputAction(function(movement) {
+            var pickedObject = viewer.scene.pick(movement.position);
+            if (Cesium.defined(pickedObject) && pickedObject.primitive instanceof Cesium.Billboard) {
+                console.log("A billboard was picked: " + pickedObject.id);
+                var billboard = pickedObject.primitive;
+                if (pickedPlace != null) {
+                    pickedPlace.image = "icons/marker-green.png";
+                }
+                billboard.image = "icons/marker-blue.png";
+                pickedPlace = billboard;
+                displayDestination(pickedObject.id, null);
+            } else {
+                console.log("No object was picked");
+                if (pickedPlace != null) {
+                    pickedPlace.image = "icons/marker-green.png";
+                    pickedPlace = null;
+                }
+            }
+        }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
         // display first place
         var placeObj = data[index];
         var lon = parseFloat(placeObj.coords.lon);
@@ -398,7 +432,7 @@ $.getJSON(coordsUrl, function(data) {
         viewer.camera.setView({
             position: Cesium.Cartesian3.fromDegrees(lon, lat, 50000.0)
         })
-        displayDestination(placeObj);
+        displayDestination(placeObj.place, placeObj.day);
     };
 
     init();

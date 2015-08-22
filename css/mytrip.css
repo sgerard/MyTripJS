@@ -25,7 +25,7 @@ html, body, #cesiumContainer {
 
 #commands .panel {
     margin: 10px 0;
-    width: 300px;
+    width: 350px;
     display: block;
 }
 
@@ -44,16 +44,6 @@ html, body, #cesiumContainer {
     max-width: 180px;
     margin-right: auto;
     margin-left: auto;
-}
-
-span.country {
-    margin-left: 5px;
-    margin-right: 5px;
-}
-
-span.flag-icon {
-    margin-left: 3px;
-    margin-right: 3px;
 }
 
 .slick-slide:focus {
